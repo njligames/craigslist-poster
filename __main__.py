@@ -23,16 +23,19 @@ from selenium.common.exceptions import NoSuchElementException
 from pyvirtualdisplay import Display
 import spintax
 
+
 class craigslistBot:
+    client =""
+
     def debug(self, inString):
         print (" [LOG] {BOT} - %s" % inString.encode('utf-8').strip())
 
     def __init__(self, loginEmail = "", loginPass = "", contactNumber = "", contactName = "", postTitle = "", postCode = "", postContentFile = "", waitTime = 10):
-        self.display = ""
+        #self.display = ""
 
-        if not os.name == 'nt':
-            self.display = Display(visible=0,size=(800,600))
-            self.display.start()
+        #if not os.name == 'nt':
+        #    self.display = Display(visible=0,size=(800,600))
+        #    self.display.start()
 
         self.client        = webdriver.Firefox()
         self.isLoggedIn    = False
@@ -46,10 +49,10 @@ class craigslistBot:
         self.waitTime      = waitTime
 
     def __del__(self):
-        if not os.name == 'nt':
-            self.display.stop()
+        #if not os.name == 'nt':
+        #    self.display.stop()
 
-        self.client.quit()
+        #self.client.quit()
         return 0
 
     def login(self):
@@ -58,7 +61,10 @@ class craigslistBot:
         self.debug("Logging in")
         self.client.find_element_by_css_selector("#inputEmailHandle").send_keys(self.loginEmail)
         self.client.find_element_by_css_selector("#inputPassword").send_keys(self.loginPass)
-        self.client.find_element_by_css_selector("form[name='login'] .loginBox button").click()
+        self.client.find_element_by_css_selector(".accountform-btn").click()
+        #time.sleep(self.waitTime)
+        #self.client.find_element_by_css_selector(".recaptcha-checkbox-checkmark").click()
+        #self.client.find_element_by_css_selector("#inputPassword").send_keys(self.loginPass)
 
         try:
             self.client.find_element_by_css_selector('.tab')
@@ -73,29 +79,31 @@ class craigslistBot:
             return 0
 
         self.debug("Navigating to post page")
-        self.client.get("http://losangeles.craigslist.org/search/sgv/cps")
-        self.client.find_element_by_css_selector(".post a.no-mobile").click()
+        self.client.get("https://post.craigslist.org/c/nyc")
+        self.client.find_element_by_css_selector("ul.selection-list > li:nth-child(2)").click()
         time.sleep(self.waitTime)
-        self.client.find_element_by_css_selector("input[value='so']").click()
+        self.client.find_element_by_css_selector("input[value='G']").click()
         time.sleep(self.waitTime)
-        self.client.find_element_by_css_selector("input[value='76']").click()
+        self.client.find_element_by_css_selector("input[value='115']").click()
         time.sleep(self.waitTime)
-        self.client.find_element_by_css_selector("input[value='4']").click()
+        self.client.find_element_by_css_selector("input[value='1']").click()
+        time.sleep(self.waitTime)
+        self.client.find_element_by_css_selector("input[value='0']").click()
         time.sleep(self.waitTime)
 
-        self.debug("Trying to fill in email")
-        try:
-            self.client.find_element_by_css_selector('#FromEMail').send_keys(self.loginEmail)
-        except NoSuchElementException:
-            self.debug("Not avaliable")
-        try:
-            self.client.find_element_by_css_selector('#FromEMail').send_keys(self.loginEmail)
-        except NoSuchElementException:
-            self.debug("Not avaliable")
+        # self.debug("Trying to fill in email")
+        # try:
+        #     self.client.find_element_by_css_selector('#FromEMail').send_keys(self.loginEmail)
+        # except NoSuchElementException:
+        #     self.debug("Not avaliable")
+        # try:
+        #     self.client.find_element_by_css_selector('#FromEMail').send_keys(self.loginEmail)
+        # except NoSuchElementException:
+        #     self.debug("Not avaliable")
 
-        self.debug("Checking 'Okay to contact by phone'")
-        self.client.find_element_by_css_selector("#contact_phone_ok").click()
-        time.sleep(self.waitTime)
+        # self.debug("Checking 'Okay to contact by phone'")
+        # self.client.find_element_by_css_selector("#contact_phone_ok").click()
+        # time.sleep(self.waitTime)
         self.debug("Checking 'Okay to contact by text'")
         self.client.find_element_by_css_selector("#contact_text_ok").click()
         time.sleep(self.waitTime)
@@ -106,7 +114,7 @@ class craigslistBot:
         self.client.find_element_by_css_selector("#contact_name").send_keys(self.contactName)
         time.sleep(self.waitTime)
         self.debug("Filling in post title")
-        self.client.find_element_by_css_selector("#PostingTitle").send_keys(spintax.parse(self.postTitle))
+        self.client.find_element_by_css_selector("#PostingTitle").send_keys(self.postTitle)
         time.sleep(self.waitTime)
         self.debug("Filling in zip code")
         self.client.find_element_by_css_selector("#postal_code").send_keys(self.postCode)
@@ -117,15 +125,15 @@ class craigslistBot:
         content = f.read()
         f.close()
 
-        self.debug("Spinning content")
-        spinContent = spintax.parse(content)
+        # self.debug("Spinning content")
+        # spinContent = spintax.parse(content)
 
         self.debug("Filling in post content")
-        self.client.find_element_by_css_selector("#PostingBody").send_keys(spinContent)
+        self.client.find_element_by_css_selector("#PostingBody").send_keys(content)
         time.sleep(self.waitTime)
-        self.debug("Checking 'Okay to contact for other offers'")
-        self.client.find_element_by_css_selector("#oc").click()
-        time.sleep(self.waitTime)
+        # self.debug("Checking 'Okay to contact for other offers'")
+        # self.client.find_element_by_css_selector("#oc").click()
+        # time.sleep(self.waitTime)
         self.debug("Unchecking 'Want a map' if checked")
         try:
             self.client.find_element_by_css_selector("#wantamap:checked")
@@ -134,16 +142,27 @@ class craigslistBot:
         finally:
             self.client.find_element_by_css_selector("#wantamap:checked").click()
         time.sleep(self.waitTime)
+        self.debug("Clicking pay")
+        self.client.find_element_by_css_selector("input[value='pay']").click()
+        time.sleep(self.waitTime)
+        self.debug("Filling in compensation")
+        self.client.find_element_by_css_selector("input#remuneration.nreq").send_keys("About $400 per month in passive income")
+        time.sleep(self.waitTime)
         self.debug("Clicking continue")
         self.client.find_element_by_css_selector('button[value="Continue"]').click()
         time.sleep(self.waitTime)
-        if "editimage" in self.client.current_url:
-            self.debug("Clicking continue")
-            self.client.find_element_by_css_selector('button.done').click()
+
+        self.debug("Clicking done with images")
+        self.client.find_element_by_css_selector('button[value="Done with Images"]').click()
         time.sleep(self.waitTime)
+        # if "editimage" in self.client.current_url:
+        #     self.debug("Clicking continue")
+        #     self.client.find_element_by_css_selector('button.done').click()
+        # time.sleep(self.waitTime)
         self.debug("Clicking publish")
         self.client.find_element_by_css_selector('.draft_warning button[value="Continue"]').click()
         time.sleep(10)
+
 
 def main(loginEmail,loginPass,contactNumber,contactName,postTitle,postCode,postContentFile,waitTime):
     startExecTime = time.time()
